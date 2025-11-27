@@ -1,5 +1,39 @@
 from datetime import datetime
 
+def parse_freshness(freshness_values):
+    """
+    Takes the original freshness values from the input file and converts them
+    to a list of tuples representing the piecewise constant freshness function.
+    
+    Parameters
+    ----------
+    freshness_values : list of str
+        List of strings in the format "start:score" representing the freshness
+        score function.
+        
+    Returns
+    -------
+    freshness_function : list of tuples
+        A list of tuples (start_t, end_t, score) representing the piecewise
+        constant freshness function.
+    """
+    pairs = []
+    freshness_function = []
+    
+    for item in freshness_values:
+        start, score = item.split(":")
+        pairs.append((int(start), int(score)))
+        
+    for index in range(len(pairs) - 1):
+        start_t = pairs[index][0]
+        end_t = pairs[index + 1][0]
+        score = pairs[index][1]
+        freshness_function.append((start_t, end_t, score))
+    
+    last_t, last_score = pairs[-1]
+    freshness_function.append((last_t, float('inf'), last_score))
+
+    return freshness_function
 
 def read_input(input_file):
     """
@@ -64,7 +98,8 @@ def read_input(input_file):
             elif section == "orders" and read_line != "":
                 # id; restaurant_location; customer_location; ready_time; a0; p0; a1; p2 ... ak; pk 
                 # a0 ... ak specifies freshness score function. 
-                order_id, restaurant_location, customer_location, ready_time, *freshness_function = read_line.split(";")
+                order_id, restaurant_location, customer_location, ready_time, *freshness_values = read_line.split(";")
+                freshness_function = parse_freshness(freshness_values)
                 orders [order_id] = {"Restaurant location": restaurant_location, 
                                     "Customer Location": customer_location, 
                                     "Ready time": ready_time,
@@ -81,8 +116,7 @@ def read_input(input_file):
 
 def evaluate(input_file, solution_file):
     """
-    Evaluate a solution by returning its total freshness score and any
-    additional diagnostic information.
+    Evaluate a solution by returning its total freshness score 
 
     Parameters
     ----------
@@ -91,14 +125,8 @@ def evaluate(input_file, solution_file):
 
     solution_file : str
         Path to a solution file in the required output format.
-
     Returns
     -------
-    dict
-        A dictionary containing evaluation metrics, including:
-        - "score": total freshness score
-        - "arrival_times": dict of order → arrival time or "unserved"
-        - any additional metrics optionally included
 
     Notes
     -----
@@ -106,13 +134,27 @@ def evaluate(input_file, solution_file):
     - value()
     - arrival_times()
     """
+    # Read solution file stores solution as a dictionary
+    # bot_id : [order_id1, order_id2, ...]
+    solution = {}
+    
+    with open(solution_file, 'r') as file:
+        for line in file:
+            read_line = line.strip()
+            bot_id , *order_ids = read_line.split(";")
+            solution[bot_id] = order_ids
+
+    for bot in solution:
+        print(f"Bot {bot} assigned orders: {solution[bot]}")
+        
+    # Read input file 
     bots, graph, time_horizon, orders = read_input(input_file)
-    print(bots)
-    
-    #with open(solution_file, 'r') as file_object:
-        #solution_data = file_object.read()
-    
-    #print(solution_data)
+
+    #for each bot, print assigned orders and their freshness functions
+    for bot in solution:
+        for order in solution[bot]:
+            print(order)
+            #print(orders[order]["Freshness Function"])
     
     return 
 
@@ -145,35 +187,6 @@ def write_solution(solution, output_file):
         
     return 
 
-def value(input_file, solution_file):
-    """
-    Compute the total freshness score of a provided solution.
-
-    Parameters
-    ----------
-    input_file : str
-        Path to an input instance file.
-
-    solution_file : str
-        Path to a solution file describing bot assignments and routes.
-
-    Returns
-    -------
-    float
-        The total freshness score of the solution. Higher is better.
-
-    Notes
-    -----
-    The function must:
-    - read and parse both input and solution files,
-    - simulate bot movements,
-    - compute arrival times,
-    - compute freshness contribution for each delivered order,
-    - sum these values into an overall score.
-    """
-    
-    return 
-
 def arrival_times(input_file, solution_file):
     """
     Compute arrival times for each order served in a solution.
@@ -199,6 +212,11 @@ def arrival_times(input_file, solution_file):
     specified in the solution file. Time must be handled using the
     assignment's time format and travel times between nodes.
     """
+    
+    ### if the bot arrives at restuarant at time T0 
+        # departs from restaurant at T1 =  max{start time + 1, T0 +2}
+        # arrives at the customer T2 = T1 + travel time from restaurant to customer
+        # when is it ready for the next customer T3 = T2 + 5 
     return 
     
 def instruction_file(input_file, solution_file, x, output_path):
