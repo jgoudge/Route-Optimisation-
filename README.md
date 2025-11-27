@@ -1,4 +1,4 @@
-🍕 PizzaBot Route Optimisation – MIP Solver (Gurobi)
+🍕** PizzaBot Route Optimisation – MIP Solver (Gurobi)**
 
 This project implements a complete pipeline for reading PizzaBot routing instances, building a (mixed-)integer programming model with Gurobi, solving for an optimal assignment and routing plan, evaluating solutions, and producing step-by-step instruction files for each bot.
 
