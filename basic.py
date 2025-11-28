@@ -31,6 +31,13 @@ class graph:
     """
     Data structure representing a directed graph
     
+    Attributes
+    -----------
+    tail : str
+        The starting node of the directed edge.
+    head : str
+        The ending node of the directed edge.
+    transit_time : int
     """
     tail: str
     head: str
@@ -88,7 +95,6 @@ class order:
     ready_time: datetime.time
     freshness_function: list 
 
-
 # Custom exception for parsing errors
 class ParsingError(Exception):
     """Custom exception for errors encountered during parsing of input files."""
@@ -98,7 +104,6 @@ class ParsingError(Exception):
         self.message = f"Error parsing file {filename} at line: {line}. {note}"
         super().__init__(self.message)
 
-        
 def parse_freshness(freshness_values):
     """
     Takes the original freshness values from the input file and converts them
@@ -267,8 +272,21 @@ def write_instance(instance: problem_instance, output_file: str):
     return 
 
 def read_solution(solution_file: str) -> dict:
-    # Read solution file stores solution as a dictionary
-    # bot_id : [order_id1, order_id2, ...]
+    """
+    Read solution file in the specified format and convert it into
+    internal data structures for further processing.
+    
+    Parameters
+    ----------
+    solution_file : str
+        Path to an existing solution file describing the solution,
+        including the bots and their assigned orders.
+    
+    Returns
+    -------
+    dict
+        A dictionary mapping each bot ID to a list of assigned order IDs.
+    """
     solution = {}
     
     with open(solution_file, 'r') as file:
@@ -305,6 +323,24 @@ def freshness_function(arrival_difference, freshness_list):
     return score 
 
 def find_transit_time(start, end, graph):
+    """ 
+    Find the transit time between two nodes in the graph using Dijkstra's algorithm.
+    
+    Attributes
+    -----------
+    start : str
+        The starting node.
+    end : str
+        The ending node.
+    graph : list
+        A list of edges in the graph, each represented as a tuple
+        (tail, head, transit_time).
+    
+    Returns
+    -------
+    transit_time : int
+        The shortest transit time between the start and end nodes.
+    """
     transit_time = 0 
     DG = nx.DiGraph()
     DG.add_weighted_edges_from(graph)
@@ -312,6 +348,20 @@ def find_transit_time(start, end, graph):
     return transit_time 
 
 def print_graph(graph):
+    """ 
+    Visualize the directed graph using networkx and matplotlib.
+    
+    Attributes
+    -----------
+    graph : list
+        A list of edges in the graph, each represented as a tuple
+        (tail, head, transit_time).
+        
+    Returns
+    -------
+    None
+        Displays a plot of the directed graph with weights.
+    """
     # turn instance graph into a networkx directed graph and print it
     DG = nx.DiGraph()
     DG.add_weighted_edges_from(graph)
@@ -369,45 +419,34 @@ def arrival_times(input_file, solution_file):
             # Get order details from instance
             restaurant_location = inst.orders[order]["Restaurant location"]
             customer_location = inst.orders[order]["Customer Location"]
-            print(f"\nBot {bot} starting at location {start_location} for order {order} at time {time_dt.time()}")
             
             # get the ready time and convert to datetime object 
             ready_time = inst.orders[order]["Ready time"]
             ready_dt = datetime.combine(datetime.today(), ready_time)
-            print(f"order ready time is at {ready_dt.time()}")
             
             # Find transit time from start to restaurant
             transit_time = find_transit_time(start_location, restaurant_location, inst.graph)
             time_dt += timedelta(minutes=transit_time)
-            print(f"found transit time of {transit_time} minutes, arrival at restaurant {restaurant_location} at time {time_dt.time()}")
             
             # one minute to enter restaurant 
             time_dt += timedelta(minutes=1)
-            print(f"add 1 minute to enter restaurant the time is now {time_dt.time()}")
             
             # check if the order time is ready or if have to wait 
             if time_dt < ready_dt:
-                print(f"waiting for order to be ready at {ready_dt.time()} ... ")
                 time_dt = ready_dt
-                print(f"the time is now {time_dt.time()}")   
-            else:
-                print("no waiting needed, order is ready")
-                
+
             #add 1 minute to exit restaurant and use current time
             time_dt += timedelta(minutes=1)
-            print("adding 1 minute to exit restaurant time is now ", time_dt.time())
             
             # find transit time from restaurant to customer
             transit_time = find_transit_time(restaurant_location, customer_location, inst.graph)
             time_dt += timedelta(minutes=transit_time)
             arrival_time = time_dt
             arrival_times[order] = time_dt.strftime("%H:%M")
-            print(f"found transit time of {transit_time} minutes, arrival to customer at time {time_dt.time()}")
             
             # self check adds 5 minutes for delivery process 
             time_dt += timedelta(minutes=5)
-            print("adding 5 minutes for delivery process time is now ", time_dt.time())
-            
+        
             # starting location is now the current customer position 
             start_location = customer_location
             start_dt = time_dt
@@ -430,6 +469,7 @@ def evaluate(input_file, solution_file):
 
     solution_file : str
         Path to a solution file in the required output format.
+        
     Returns
     -------
     int
@@ -506,7 +546,6 @@ def write_solution(solution, output_file):
             f.write(line)
     return 
 
-    
 def instruction_file(input_file, solution_file, output_path):
     """
     Write a step-by-step instruction file for a specific PizzaBot.
@@ -526,23 +565,6 @@ def instruction_file(input_file, solution_file, output_path):
     -------
     None
         Writes a file containing human-readable movement and action steps.
-
-    File Format
-    -----------
-    The file must contain a section beginning with:
-        [<bot_id>]
-
-    Each subsequent line must be one of the following commands:
-        go to <node_id>
-        collect food
-        deliver food
-
-    Notes
-    -----
-    - "go to" lines must list *every* intermediate node on the shortest path.
-    - "collect food" is written upon reaching the restaurant of an assigned order.
-    - "deliver food" is written upon reaching the customer of that order.
-    - The function must process orders in the exact sequence given in the solution.
     """
     instance = read_input(input_file)
     solution = read_solution(solution_file)
