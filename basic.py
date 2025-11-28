@@ -11,7 +11,8 @@ class problem_instance:
     Attributes
     -----------
     bots : dict 
-        A dictionary mapping bot IDs to their starting locations.
+        A dictionary containing bots, referenced by their bot IDs to, 
+        encoded as Bot dataclass instances.
     graph : list
         A list of edges in the graph, each represented as a tuple
         (tail, head, transit_time).
@@ -26,25 +27,9 @@ class problem_instance:
     time_horizon: dict
     orders: list
 
-@dataclass 
-class graph:
-    """
-    Data structure representing a directed graph
-    
-    Attributes
-    -----------
-    tail : str
-        The starting node of the directed edge.
-    head : str
-        The ending node of the directed edge.
-    transit_time : int
-    """
-    tail: str
-    head: str
-    transit_time: int
     
 @dataclass 
-class bot:
+class Bot:
     """
     Data structure representing a PizzaBot.
     
@@ -58,23 +43,8 @@ class bot:
     id: str
     location: str
     
-@dataclass 
-class time_horizon:
-    """
-    Data structure representing the time horizon for the problem instance.
-    
-    Attributes
-    -----------
-    start : str
-        Start time of the time horizon in the format (AA:BB) HH:MM.
-    end : str
-        End time of the time horizon in the format (CC:DD) HH:MM.
-    """
-    start: datetime.time
-    end: datetime.time
-
 @dataclass
-class order:
+class Order:
     """
     Data structure representing a customer order.
     
@@ -103,6 +73,10 @@ class ParsingError(Exception):
         self.line = line
         self.message = f"Error parsing file {filename} at line: {line}. {note}"
         super().__init__(self.message)
+# Error when two buildings/gates have the same name
+class NamingConflictError(ParsingError):
+    def __init__(self, filename, line):
+        super().__init__(filename, line, "Name already used by another location.")
 
 def parse_freshness(freshness_values):
     """
@@ -159,12 +133,11 @@ def read_input(input_file: str) -> problem_instance:
         A data structure encapsulating all relevant information from the
         input file, including bots, graph, time horizon, and orders.
     """
-    
-    graph = []
-    time_horizon = {}
-    orders = {}
-    bots = {}
-    section = None
+    graph = list() # list of Graph dataclass
+    time_horizon = dict() # dictionary of datetime objects for start and end 
+    orders = dict() # dictionary of orders mapping order id to Order dataclass
+    bots = dict() # dictionary mapping bot id to Bot dataclass
+    section = None 
     
     # Read the input file line by line
     with open(input_file, 'r') as file:
@@ -186,10 +159,16 @@ def read_input(input_file: str) -> problem_instance:
                     case "[orders]":
                         section = "orders"
                 continue #skip to next line (content after header)   
+            
             try: 
                 if section == "bots":
                     bot_id, location = line.split(";")
-                    bots[bot_id] = location
+                    bot = Bot(bot_id, location)
+                    if bot_id not in bots:
+                        bots[bot_id] = bot
+                    else:
+                        raise(NamingConflictError(input_file, line))
+
                 elif section == "graph":
                     tail, head, transit = line.split(";")
                     graph.append((tail, head, int(transit)))
@@ -203,12 +182,11 @@ def read_input(input_file: str) -> problem_instance:
                     order_id, restaurant, customer, ready_time, *f_vals = line.split(";")
                     freshness = parse_freshness(f_vals)
                     ready_time = datetime.strptime(ready_time, "%H:%M").time()
-                    orders[order_id] = {
-                        "Restaurant location": restaurant,
-                        "Customer Location": customer,
-                        "Ready time": ready_time,
-                        "Freshness Function": freshness
-                    }
+                    order = Order(order_id, restaurant, customer, ready_time, freshness)
+                    if order_id not in orders:
+                        orders[order_id] = order
+                    else:
+                        raise(NamingConflictError(input_file, line))
                 else: 
                     raise ParsingError(input_file, line, "Found data outside any section")
             
@@ -341,7 +319,6 @@ def find_transit_time(start, end, graph):
     transit_time : int
         The shortest transit time between the start and end nodes.
     """
-    transit_time = 0 
     DG = nx.DiGraph()
     DG.add_weighted_edges_from(graph)
     transit_time = nx.dijkstra_path_length(DG, start, end)
@@ -414,14 +391,14 @@ def arrival_times(input_file, solution_file):
     
     # For each bot in solution, for each order in bot's list
     for bot in solution:
-        start_location = inst.bots[bot]
+        start_location = inst.bots[bot].location
         for order in solution[bot]:
             # Get order details from instance
-            restaurant_location = inst.orders[order]["Restaurant location"]
-            customer_location = inst.orders[order]["Customer Location"]
+            restaurant_location = inst.orders[order].restaurant_location
+            customer_location = inst.orders[order].customer_location
             
             # get the ready time and convert to datetime object 
-            ready_time = inst.orders[order]["Ready time"]
+            ready_time = inst.orders[order].ready_time
             ready_dt = datetime.combine(datetime.today(), ready_time)
             
             # Find transit time from start to restaurant
@@ -488,7 +465,7 @@ def evaluate(input_file, solution_file):
         start_location = inst.bots[bot]
         for order in solution[bot]:
             # get the ready time and convert to datetime object 
-            ready_time = inst.orders[order]["Ready time"]
+            ready_time = inst.orders[order].ready_time
             ready_dt = datetime.combine(datetime.today(), ready_time)
             
             # get the arrival time at customer from previously computed arrival times
@@ -496,13 +473,13 @@ def evaluate(input_file, solution_file):
             minutes_delta = (arrival_dt - ready_dt).total_seconds() / 60
 
             # calculate the freshness score using the difference and freshness function
-            freshness_fnc = inst.orders[order]["Freshness Function"]
+            freshness_fnc = inst.orders[order].freshness_function
             total_score += freshness_function(minutes_delta, freshness_fnc)
             
     # Check for unserved orders
     for order in arrival_t:
         if arrival_t[order] == "unserved":
-            freshness_fnc = inst.orders[order]["Freshness Function"]
+            freshness_fnc = inst.orders[order].freshness_function
             total_score += freshness_function(float('inf'), freshness_fnc) 
 
     print(f"=== solution value ===\n{total_score}\n")
@@ -566,23 +543,22 @@ def instruction_file(input_file, solution_file, output_path):
     None
         Writes a file containing human-readable movement and action steps.
     """
-    instance = read_input(input_file)
+    inst = read_input(input_file)
     solution = read_solution(solution_file)
     
     #make directed graph
     DG = nx.DiGraph()
-    DG.add_weighted_edges_from(instance.graph)
-
+    DG.add_weighted_edges_from(inst.graph)
     with open(output_path, "w") as f:
         for bots in solution:
-            location = instance.bots[bots]
+            location = inst.bots[bots].location
             print("\n=== instructions ===")
             print(f"[{bots}]")
             f.write(f"[{bots}]\n")
             
             for order in solution[bots]:
                 # get restaurant location  
-                restaurant_location = inst.orders[order]["Restaurant location"]
+                restaurant_location = inst.orders[order].restaurant_location
 
                 # get all nodes from position to restaurant 
                 path = nx.dijkstra_path(DG, location, restaurant_location)
@@ -597,7 +573,7 @@ def instruction_file(input_file, solution_file, output_path):
                 f.write("collect food\n")
                 
                 # get customer location
-                customer_location = inst.orders[order]["Customer Location"]
+                customer_location = inst.orders[order].customer_location
                 
                 # get all nodes from restaurant to customer 
                 path = nx.dijkstra_path(DG, location, customer_location)
