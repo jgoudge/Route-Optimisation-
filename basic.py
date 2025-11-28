@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from dataclasses import dataclass
 
 @dataclass 
@@ -56,10 +56,10 @@ class time_horizon:
     
     Attributes
     -----------
-    start : datetime.time
-        Start time of the time horizon in datetime format HH:MM.
-    end : datetime.time
-        End time of the time horizon in datetime format HH:MM.
+    start : str
+        Start time of the time horizon in the format (AA:BB) HH:MM.
+    end : str
+        End time of the time horizon in the format (CC:DD) HH:MM.
     """
     start: datetime.time
     end: datetime.time
@@ -188,14 +188,14 @@ def read_input(input_file: str) -> problem_instance:
                     graph.append((tail, head, int(transit)))
                     
                 elif section == "time horizon":
-                    label, time_str = line.split(" ")
-                    t = datetime.strptime(time_str, "%H:%M").time()
-                    time_horizon[label] = t
+                    label, time = line.split(" ")
+                    time = datetime.strptime(time, "%H:%M").time()
+                    time_horizon[label] = time
                     
                 elif section == "orders":
                     order_id, restaurant, customer, ready_time, *f_vals = line.split(";")
-                    ready_time = datetime.strptime(ready_time, "%H:%M").time()
                     freshness = parse_freshness(f_vals)
+                    ready_time = datetime.strptime(ready_time, "%H:%M").time()
                     orders[order_id] = {
                         "Restaurant location": restaurant,
                         "Customer Location": customer,
@@ -207,7 +207,6 @@ def read_input(input_file: str) -> problem_instance:
             
             except (TypeError, ValueError):
                 raise(ParsingError(input_file, line))
-
 
     inst = problem_instance(bots=bots, graph=graph, 
                             time_horizon=time_horizon, orders=orders)
@@ -274,12 +273,35 @@ def read_solution(solution_file: str) -> dict:
         for line in file:
             read_line = line.strip()
             bot_id , *order_ids = read_line.split(";")
-            solution[bot_id] = order_ids
-
-    for bot in solution:
-        print(f"Bot {bot} assigned orders: {solution[bot]}")
-        
+            solution[bot_id] = order_ids    
     return solution
+
+def freshness_function(arrival_difference, freshness_list):
+    """
+    Compute the freshness score based on arrival time difference and the provided freshness function
+    of the order provided. 
+    
+    Parameters
+    ----------
+    arrival_difference : int
+        The time difference between the order ready time and the arrival time at the customer.
+    freshness_list : list of tuples
+        A list of tuples (start_t, end_t, score) representing the piecewise
+        constant freshness function.
+    
+    Returns
+    -------
+    score: int
+        The freshness score based on the arrival time difference.
+    """
+    for interval in freshness_list:
+        int_start, int_end, score = interval 
+        #print(f"Checking interval {int_start} to {int_end} with score {score}")
+        if arrival_difference >= int_start and arrival_difference < int_end:
+            return score 
+
+    return score 
+
 
 def evaluate(input_file, solution_file):
     """
@@ -294,29 +316,100 @@ def evaluate(input_file, solution_file):
         Path to a solution file in the required output format.
     Returns
     -------
-
-    Notes
-    -----
-    This function acts as a wrapper combining:
-    - value()
-    - arrival_times()
+    int
+        The total freshness score achieved by the solution file.
     """
     # Read input and solution file 
     inst = read_input(input_file)
     solution = read_solution(solution_file)
-
-    #for each bot, print assigned orders and their freshness functions
-    #for bot in solution:
-        #for order in solution[bot]:
-            ## for each order find the freshness function 
-            ## find the time that you arrive at the customer. 
-            #print(order)
-            
-            #break
-            
-    #for items in orders:
-        #print(items,orders[items]["Freshness Function"])
     
+    # Initialize total score
+    total_score = 0
+    start_time = inst.time_horizon['start']
+    print(f"Start time is {start_time}")
+    start_dt = datetime.combine(datetime.today(), start_time)
+    
+
+    # For each bot in solution, for each order in bot's list
+    for bot in solution:
+        print(solution[bot])
+        start_location = inst.bots[bot]
+        for order in solution[bot]:
+            # Get order details from instance
+            print(f"Getting order details {order} executed by {bot}")
+            #start_location = inst.bots[bot]
+            restaurant_location = inst.orders[order]["Restaurant location"]
+            customer_location = inst.orders[order]["Customer Location"]
+            print(f"Starting at {start_location} the restaurant is at {restaurant_location} and customer at {customer_location}")
+            
+            # get the ready time and convert to datetime object 
+            ready_time = inst.orders[order]["Ready time"]
+            ready_dt = datetime.combine(datetime.today(), ready_time)
+
+            # Find transit time from start to restaurant
+            print("Finding transit time from start to restaurant")
+            for edges in inst.graph:
+                if edges[0] == start_location and edges[1] == restaurant_location:
+                    transit_time = edges[2]
+                    print(f"Found edge {edges} with transit time {transit_time}")
+                    break
+                #else:
+                    #print("there are no directly connected routes and need to connect via other nodes")
+            
+            # time after transit to restaurant
+            time_dt = start_dt + timedelta(minutes=transit_time)
+            
+            # one minute to enter restaurant 
+            print("adding 1 minute to enter restaurant")
+            time_dt += timedelta(minutes=1)
+            print(f"the time is now {time_dt.time()}")
+            
+            
+            if time_dt < ready_dt:
+                print(f"waiting for order to be ready at {ready_dt.time()}")
+                time_dt = ready_dt
+                print(f"the time is now {time_dt.time()}")
+                # add one minute to exit the restaurant
+                time_dt += timedelta(minutes=1)
+                print("adding 1 minute to exit restaurant time is now ", time_dt.time())
+                
+            else:
+                print("no waiting needed, order is ready")
+                #add 1 minute to exit restaurant and use current time
+                time_dt += timedelta(minutes=1)
+            
+            # Find transit time from restaurant to customer
+            print("Finding transit time from restaurant to customer")
+            print(f"looking for edge from {restaurant_location} to {customer_location}")
+            for edges in inst.graph:
+                if edges[0] == restaurant_location and edges[1] == customer_location:
+                    transit_time = edges[2]
+                    print(f"Found edge {edges} with transit time {transit_time}")
+                    break
+                #else:
+                    #print("there are no directly connected routes and need to connect via other nodes")
+            
+            # time after transit to customer
+            time_dt += timedelta(minutes=transit_time)
+            arrival_time = time_dt
+            print("arrived at customer at time ", time_dt.time())
+            
+            # self check adds 5 minutes for delivery process 
+            time_dt += timedelta(minutes=5)
+            print("adding 5 minutes for delivery process time is now ", time_dt.time())
+            minutes_delta = (arrival_time - ready_dt).total_seconds() / 60
+            
+            # calculate the freshness score using the difference and freshness function
+            freshness_fnc = inst.orders[order]["Freshness Function"]
+            print(f"difference to arrival time = {minutes_delta} with freshness function {freshness_fnc}")
+            score = freshness_function(minutes_delta, freshness_fnc)
+            total_score += score
+            
+            # starting location is now the current customer position 
+            start_location = customer_location
+            
+
+    print(f"Total freshness score: {total_score}")
     return 
 
 
@@ -423,7 +516,7 @@ def instruction_file(input_file, solution_file, x, output_path):
     return 
 
 if __name__ == "__main__":
-    inst = read_input("Examples/input.txt")
-    write_instance(inst, "Examples/output_instance.txt")
-    evaluate("Examples/input.txt", "Examples/solution.txt")
+    inst = read_input("Examples/instance1")
+    #write_instance(inst, "Examples/output_instance1.txt")
+    evaluate("Examples/instance1", "Examples/instance1_sol")
     
