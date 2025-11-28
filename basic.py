@@ -265,6 +265,22 @@ def write_instance(instance: problem_instance, output_file: str):
                     f"{freshness_str}\n")
     return 
 
+def read_solution(solution_file: str) -> dict:
+    # Read solution file stores solution as a dictionary
+    # bot_id : [order_id1, order_id2, ...]
+    solution = {}
+    
+    with open(solution_file, 'r') as file:
+        for line in file:
+            read_line = line.strip()
+            bot_id , *order_ids = read_line.split(";")
+            solution[bot_id] = order_ids
+
+    for bot in solution:
+        print(f"Bot {bot} assigned orders: {solution[bot]}")
+        
+    return solution
+
 def evaluate(input_file, solution_file):
     """
     Evaluate a solution by returning its total freshness score 
@@ -285,21 +301,9 @@ def evaluate(input_file, solution_file):
     - value()
     - arrival_times()
     """
-    # Read solution file stores solution as a dictionary
-    # bot_id : [order_id1, order_id2, ...]
-    solution = {}
-    
-    with open(solution_file, 'r') as file:
-        for line in file:
-            read_line = line.strip()
-            bot_id , *order_ids = read_line.split(";")
-            solution[bot_id] = order_ids
-
-    for bot in solution:
-        print(f"Bot {bot} assigned orders: {solution[bot]}")
-        
-    # Read input file 
+    # Read input and solution file 
     inst = read_input(input_file)
+    solution = read_solution(solution_file)
 
     #for each bot, print assigned orders and their freshness functions
     #for bot in solution:
@@ -314,6 +318,7 @@ def evaluate(input_file, solution_file):
         #print(items,orders[items]["Freshness Function"])
     
     return 
+
 
 def write_solution(solution, output_file):
     """
@@ -420,5 +425,5 @@ def instruction_file(input_file, solution_file, x, output_path):
 if __name__ == "__main__":
     inst = read_input("Examples/input.txt")
     write_instance(inst, "Examples/output_instance.txt")
-    #evaluate("Examples/input.txt", "Examples/solution.txt")
+    evaluate("Examples/input.txt", "Examples/solution.txt")
     
