@@ -417,7 +417,6 @@ def arrival_times(input_file, solution_file):
         if orders not in arrival_times:
             arrival_times[orders] = "unserved"
             
-    print("Arrival times: ", arrival_times)
     return arrival_times
 
 def evaluate(input_file, solution_file):
@@ -466,7 +465,12 @@ def evaluate(input_file, solution_file):
             freshness_fnc = inst.orders[order]["Freshness Function"]
             total_score += freshness_function(float('inf'), freshness_fnc) 
 
-    print(f"Total freshness score: {total_score}")
+    print(f"=== solution value ===\n{total_score}\n")
+    print("=== arrival times ===")
+    
+    for item in sorted(arrival_t):
+        print(f"{item} : {arrival_t[item]}")
+
     #print_graph(inst.graph)
     return 
 
@@ -501,7 +505,7 @@ def write_solution(solution, output_file):
     return 
 
     
-def instruction_file(input_file, solution_file, x, output_path):
+def instruction_file(input_file, solution_file, output_path):
     """
     Write a step-by-step instruction file for a specific PizzaBot.
 
@@ -512,10 +516,7 @@ def instruction_file(input_file, solution_file, x, output_path):
 
     solution_file : str
         Path to a solution file specifying bot routes and assigned orders.
-
-    x : str
-        The ID of the bot for which instructions should be produced.
-
+        
     output_path : str
         Path where the instruction text file should be written.
 
@@ -541,6 +542,50 @@ def instruction_file(input_file, solution_file, x, output_path):
     - "deliver food" is written upon reaching the customer of that order.
     - The function must process orders in the exact sequence given in the solution.
     """
+    instance = read_input(input_file)
+    solution = read_solution(solution_file)
+    
+    #make directed graph
+    DG = nx.DiGraph()
+    DG.add_weighted_edges_from(instance.graph)
+
+    with open(output_path, "w") as f:
+        for bots in solution:
+            location = instance.bots[bots]
+            print("\n=== instructions ===")
+            print(f"[{bots}]")
+            f.write(f"[{bots}]\n")
+            
+            for order in solution[bots]:
+                # get restaurant location  
+                restaurant_location = inst.orders[order]["Restaurant location"]
+
+                # get all nodes from position to restaurant 
+                path = nx.dijkstra_path(DG, location, restaurant_location)
+
+                for node in path[1:]:
+                    print("go to " + node)
+                    f.write("go to " + node + "\n")
+                    location = node
+                
+                # at the restaurant 
+                print("collect food")
+                f.write("collect food\n")
+                
+                # get customer location
+                customer_location = inst.orders[order]["Customer Location"]
+                
+                # get all nodes from restaurant to customer 
+                path = nx.dijkstra_path(DG, location, customer_location)
+
+                for node in path[1:]:
+                    print("go to " + node)
+                    f.write("go to " + node + "\n")
+                    location = node
+
+                # at the customer
+                print("deliver food")
+                f.write("deliver food\n")
     return 
 
 if __name__ == "__main__":
@@ -548,5 +593,6 @@ if __name__ == "__main__":
     #write_instance(inst, "Examples/output_instance1.txt")
     evaluate("Examples/instance1", "Examples/instance1_sol")
     #arrival_times("Examples/instance1", "Examples/instance1_sol")
+    instruction_file("Examples/instance1", "Examples/instance1_sol", "Examples/instance1-instructions.txt")
     
     
