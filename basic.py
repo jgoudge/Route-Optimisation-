@@ -26,8 +26,6 @@ class problem_instance:
     graph: list 
     time_horizon: dict
     orders: list
-
-    
 @dataclass 
 class Bot:
     """
@@ -42,7 +40,6 @@ class Bot:
     """
     id: str
     location: str
-    
 @dataclass
 class Order:
     """
@@ -594,5 +591,4 @@ if __name__ == "__main__":
     
     evaluate("Examples/instance1", "Examples/instance1_sol") #calls the arrival_times function 
     instruction_file("Examples/instance1", "Examples/instance1_sol", "Examples/instance1-instructions.txt")
-    
-    
+    print_graph(inst.graph)
