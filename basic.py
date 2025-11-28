@@ -148,80 +148,91 @@ def read_input(input_file: str) -> problem_instance:
 
     Returns
     -------
-    bots : dict 
-        A dictionary mapping bot IDs to their starting locations.
-    graph : list of tuples
-        A list of edges in the graph, each represented as a tuple
-        (tail, head, transit_time).
-    time_horizon : dict
-        A dictionary with keys "start" and "end" mapping to datetime.time
-        objects representing the time horizon.
-    orders : dict
-        A dictionary mapping order IDs to their details, including
-        restaurant location, customer location, ready time, and freshness function.
+    problem_instance
+        A data structure encapsulating all relevant information from the
+        input file, including bots, graph, time horizon, and orders.
     """
-    bots = dict()
-    graph = list()
-    time_horizon = dict()
-    orders = dict()
     
-    section = "None"
+    graph = []
+    time_horizon = {}
+    orders = {}
+    bots = {}
+    section = None
     
     # Read the input file line by line
     with open(input_file, 'r') as file:
         for line in file:
-            read_line = line.strip()
-        
-            # Identify section headers
-            if read_line == "[bots]":
-                section = "bots"
-                continue 
-            elif read_line == "[graph]":
-                section = "graph"
-                continue 
-            elif read_line == "[time horizon]":
-                section = "time horizon"
-                continue 
-            elif read_line == "[orders]":
-                section = "orders"
+            line = line.strip()
+            # Skip empty lines
+            if not line:
                 continue
             
-            # Parse lines based on the current section
-            if section == "bots" and read_line != "":
-                # id ; location
-                bot_id, location = read_line.split(";")
-                bots[bot_id] = location
-                
-            elif section == "time horizon" and read_line != "":
-                # label (start or end); time in HH:MM format
-                label, time_string = read_line.split(" ")
-                time_object = datetime.strptime(time_string, "%H:%M").time()
-                # error converting to datetime object raises ValueError 
-                time_horizon[label] = time_object
-                
-            elif section == "orders" and read_line != "":
-                # id; restaurant_location; customer_location; ready_time; a0; p0; a1; p2 ... ak; pk 
-                # a0 ... ak specifies freshness score function. 
-                order_id, restaurant_location, customer_location, ready_time, *freshness_values = read_line.split(";")
-                ready_time = datetime.strptime(ready_time, "%H:%M").time() 
-                freshness_function = parse_freshness(freshness_values)
-                orders [order_id] = {"Restaurant location": restaurant_location, 
-                                    "Customer Location": customer_location, 
-                                    "Ready time": ready_time,
-                                    "Freshness Function": freshness_function}
-                
-            elif section == "graph" and read_line != "":
-                # tail ; head ; transit_time 
-                # -----> at the moment just an edge list good for Gurobi MIP model
-                # ---> might need to implement an adjacency list or matrix for heuristic solution
-                tail, head, transit_time = read_line.split(";")
-                graph.append((tail, head, int(transit_time)))
-    
-    
-    print(orders)
-    print(orders['DB001']["Ready time"].strftime("%H:%M"))
-    
-    return bots, graph, time_horizon, orders
+            # Check for section headers
+            if line.startswith("[") and line.endswith("]"):
+                match line:
+                    case "[bots]":
+                        section = "bots"
+                    case "[graph]":
+                        section = "graph" 
+                    case "[time horizon]":
+                        section = "time horizon"        
+                    case "[orders]":
+                        section = "orders"
+                continue #skip to next line (content after header)   
+            try: 
+                if section == "bots":
+                    bot_id, location = line.split(";")
+                    bots[bot_id] = location
+                elif section == "graph":
+                    tail, head, transit = line.split(";")
+                    graph.append((tail, head, int(transit)))
+                    
+                elif section == "time horizon":
+                    label, time_str = line.split(" ")
+                    t = datetime.strptime(time_str, "%H:%M").time()
+                    time_horizon[label] = t
+                    
+                elif section == "orders":
+                    order_id, restaurant, customer, ready_time, *f_vals = line.split(";")
+                    ready_time = datetime.strptime(ready_time, "%H:%M").time()
+                    freshness = parse_freshness(f_vals)
+                    orders[order_id] = {
+                        "Restaurant location": restaurant,
+                        "Customer Location": customer,
+                        "Ready time": ready_time,
+                        "Freshness Function": freshness
+                    }
+                else: 
+                    raise ParsingError(input_file, line, "Found data outside any section")
+            
+            except (TypeError, ValueError):
+                raise(ParsingError(input_file, line))
+
+
+    inst = problem_instance(bots=bots, graph=graph, 
+                            time_horizon=time_horizon, orders=orders)
+    return inst
+
+def write_instance(instance: problem_instance, output_file: str):
+    """
+    Write a problem instance to an output file in the specified format.
+
+    Parameters
+    ----------
+    instance : problem_instance
+        The problem instance data structure containing bots, graph,
+        time horizon, and orders.
+
+    output_file : str
+        Path where the instance file should be written. File will be created
+        or overwritten.
+
+    Returns
+    -------
+    None
+        The function writes the instance to the file but returns nothing.
+    """
+    return
 
 def evaluate(input_file, solution_file):
     """
@@ -257,16 +268,16 @@ def evaluate(input_file, solution_file):
         print(f"Bot {bot} assigned orders: {solution[bot]}")
         
     # Read input file 
-    bots, graph, time_horizon, orders = read_input(input_file)
+    inst = read_input(input_file)
 
     #for each bot, print assigned orders and their freshness functions
-    for bot in solution:
-        for order in solution[bot]:
+    #for bot in solution:
+        #for order in solution[bot]:
             ## for each order find the freshness function 
             ## find the time that you arrive at the customer. 
             #print(order)
             
-            break
+            #break
             
     #for items in orders:
         #print(items,orders[items]["Freshness Function"])
