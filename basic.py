@@ -474,8 +474,6 @@ def evaluate(input_file, solution_file):
     #print_graph(inst.graph)
     return 
 
-
-
 def write_solution(solution, output_file):
     """
     Write a solution using the required output format.
@@ -501,7 +499,11 @@ def write_solution(solution, output_file):
     This function must produce output *exactly* in the required format,
     since it will be evaluated by automated scripts.
     """
-        
+    with open(output_file, "w") as f:
+        for bots in solution:
+            orders = solution[bots]
+            line = bots + ";" + ";".join(orders) + "\n"
+            f.write(line)
     return 
 
     
@@ -590,9 +592,9 @@ def instruction_file(input_file, solution_file, output_path):
 
 if __name__ == "__main__":
     inst = read_input("Examples/instance1")
-    #write_instance(inst, "Examples/output_instance1.txt")
-    evaluate("Examples/instance1", "Examples/instance1_sol")
-    #arrival_times("Examples/instance1", "Examples/instance1_sol")
+    solution = read_solution("Examples/instance1_sol")
+    
+    evaluate("Examples/instance1", "Examples/instance1_sol") #calls the arrival_times function 
     instruction_file("Examples/instance1", "Examples/instance1_sol", "Examples/instance1-instructions.txt")
     
     
