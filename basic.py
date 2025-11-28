@@ -1,5 +1,7 @@
 from datetime import datetime, timedelta
 from dataclasses import dataclass
+import networkx as nx 
+import matplotlib.pyplot as plt
 
 @dataclass 
 class problem_instance:
@@ -27,7 +29,7 @@ class problem_instance:
 @dataclass 
 class graph:
     """
-    Data structure representing a 
+    Data structure representing a directed graph
     
     """
     tail: str
@@ -304,15 +306,119 @@ def freshness_function(arrival_difference, freshness_list):
 
 def find_transit_time(start, end, graph):
     transit_time = 0 
-    for edges in inst.graph:
-        if edges[0] == start and edges[1] == end:
-            transit_time = edges[2]
-            print(f"Found edge {edges} with transit time {transit_time}")
-            return transit_time
-    
-    else: 
-        print (f"No direct edge found from {start} to {end}, returning 0")
+    DG = nx.DiGraph()
+    DG.add_weighted_edges_from(graph)
+    transit_time = nx.dijkstra_path_length(DG, start, end)
     return transit_time 
+
+def print_graph(graph):
+    # turn instance graph into a networkx directed graph and print it
+    DG = nx.DiGraph()
+    DG.add_weighted_edges_from(graph)
+
+    pos = nx.spring_layout(DG, seed=42) 
+    nx.draw_networkx_nodes(DG, pos, node_size=700, node_color='lightblue')
+
+    # Draw edges with arrows
+    nx.draw_networkx_edges(DG, pos, arrowstyle='->', arrowsize=20)
+
+    # Draw node labels
+    nx.draw_networkx_labels(DG, pos, font_size=12, font_weight='bold')
+
+    # Draw edge weights
+    edge_labels = nx.get_edge_attributes(DG, 'weight')
+    nx.draw_networkx_edge_labels(DG, pos, edge_labels=edge_labels)
+
+    # Show the plot
+    plt.title("Directed Graph (DiGraph) with Weights")
+    plt.axis('off')  # optional: turn off the axes
+    plt.show()
+    return
+
+def arrival_times(input_file, solution_file):
+    """
+    Compute arrival times for each order served in a solution.
+
+    Parameters
+    ----------
+    input_file : str
+        Path to an input instance file.
+
+    solution_file : str
+        Path to a solution file in the required format.
+
+    Returns
+    -------
+    dict
+        A dictionary mapping each order ID to either:
+        - a string "HH:MM" representing the arrival time at the customer, or
+        - the string "unserved" if the order was not fulfilled.
+    """
+    # Read input and solution file 
+    inst = read_input(input_file)
+    solution = read_solution(solution_file)
+    
+    arrival_times = {}
+    time = inst.time_horizon['start']
+    time_dt = datetime.combine(datetime.today(), time)
+    
+    # For each bot in solution, for each order in bot's list
+    for bot in solution:
+        start_location = inst.bots[bot]
+        for order in solution[bot]:
+            # Get order details from instance
+            restaurant_location = inst.orders[order]["Restaurant location"]
+            customer_location = inst.orders[order]["Customer Location"]
+            print(f"\nBot {bot} starting at location {start_location} for order {order} at time {time_dt.time()}")
+            
+            # get the ready time and convert to datetime object 
+            ready_time = inst.orders[order]["Ready time"]
+            ready_dt = datetime.combine(datetime.today(), ready_time)
+            print(f"order ready time is at {ready_dt.time()}")
+            
+            # Find transit time from start to restaurant
+            transit_time = find_transit_time(start_location, restaurant_location, inst.graph)
+            time_dt += timedelta(minutes=transit_time)
+            print(f"found transit time of {transit_time} minutes, arrival at restaurant {restaurant_location} at time {time_dt.time()}")
+            
+            # one minute to enter restaurant 
+            time_dt += timedelta(minutes=1)
+            print(f"add 1 minute to enter restaurant the time is now {time_dt.time()}")
+            
+            # check if the order time is ready or if have to wait 
+            if time_dt < ready_dt:
+                print(f"waiting for order to be ready at {ready_dt.time()} ... ")
+                time_dt = ready_dt
+                print(f"the time is now {time_dt.time()}")   
+            else:
+                print("no waiting needed, order is ready")
+                
+            #add 1 minute to exit restaurant and use current time
+            time_dt += timedelta(minutes=1)
+            print("adding 1 minute to exit restaurant time is now ", time_dt.time())
+            
+            # find transit time from restaurant to customer
+            transit_time = find_transit_time(restaurant_location, customer_location, inst.graph)
+            time_dt += timedelta(minutes=transit_time)
+            arrival_time = time_dt
+            arrival_times[order] = time_dt.strftime("%H:%M")
+            print(f"found transit time of {transit_time} minutes, arrival to customer at time {time_dt.time()}")
+            
+            # self check adds 5 minutes for delivery process 
+            time_dt += timedelta(minutes=5)
+            print("adding 5 minutes for delivery process time is now ", time_dt.time())
+            
+            # starting location is now the current customer position 
+            start_location = customer_location
+            start_dt = time_dt
+            
+    # Check for unserved orders
+    for orders in inst.orders:
+        if orders not in arrival_times:
+            arrival_times[orders] = "unserved"
+            
+    print("Arrival times: ", arrival_times)
+    return arrival_times
 
 def evaluate(input_file, solution_file):
     """
@@ -336,76 +442,34 @@ def evaluate(input_file, solution_file):
     
     # Initialize total score
     total_score = 0
-    start_time = inst.time_horizon['start']
-    print(f"Start time is {start_time}")
-    start_dt = datetime.combine(datetime.today(), start_time)
-    
+    arrival_t = arrival_times(input_file, solution_file)
 
     # For each bot in solution, for each order in bot's list
     for bot in solution:
-        print(solution[bot])
         start_location = inst.bots[bot]
         for order in solution[bot]:
-            
-            # Get order details from instance
-            print(f"Getting order details {order} executed by {bot}")
-            restaurant_location = inst.orders[order]["Restaurant location"]
-            customer_location = inst.orders[order]["Customer Location"]
-            print(f"Starting at {start_location} the restaurant is at {restaurant_location} and customer at {customer_location}")
-            
             # get the ready time and convert to datetime object 
             ready_time = inst.orders[order]["Ready time"]
             ready_dt = datetime.combine(datetime.today(), ready_time)
+            
+            # get the arrival time at customer from previously computed arrival times
+            arrival_dt = datetime.combine(datetime.today(), datetime.strptime(arrival_t[order], "%H:%M").time())
+            minutes_delta = (arrival_dt - ready_dt).total_seconds() / 60
 
-            # Find transit time from start to restaurant
-            transit_time = find_transit_time(start_location, restaurant_location, inst.graph)
-            time_dt = start_dt + timedelta(minutes=transit_time)
-            print(f"found transit time of {transit_time} minutes, arrival at restaurant at time {time_dt.time()}")
-            
-            # one minute to enter restaurant 
-            time_dt += timedelta(minutes=1)
-            print(f"add 1 minute to enter the time is now {time_dt.time()}")
-            
-            # check if the order time is ready or if have to wait 
-            if time_dt < ready_dt:
-                print(f"waiting for order to be ready at {ready_dt.time()}")
-                time_dt = ready_dt
-                print(f"the time is now {time_dt.time()}")
-                
-            else:
-                print("no waiting needed, order is ready")
-            
-            #add 1 minute to exit restaurant and use current time
-            time_dt += timedelta(minutes=1)
-            print("adding 1 minute to exit restaurant time is now ", time_dt.time())
-            
-            # Find transit time from restaurant to customer
-            print("Finding transit time from restaurant to customer")
-            print(f"looking for edge from {restaurant_location} to {customer_location}")
-            
-            transit_time = find_transit_time(restaurant_location, customer_location, inst.graph)
-            # time after transit to customer
-            time_dt += timedelta(minutes=transit_time)
-            arrival_time = time_dt
-            print("arrived at customer at time ", time_dt.time())
-            
-            # self check adds 5 minutes for delivery process 
-            time_dt += timedelta(minutes=5)
-            print("adding 5 minutes for delivery process time is now ", time_dt.time())
-            minutes_delta = (arrival_time - ready_dt).total_seconds() / 60
-            
             # calculate the freshness score using the difference and freshness function
             freshness_fnc = inst.orders[order]["Freshness Function"]
-            print(f"difference to arrival time = {minutes_delta} with freshness function {freshness_fnc}")
-            score = freshness_function(minutes_delta, freshness_fnc)
-            total_score += score
+            total_score += freshness_function(minutes_delta, freshness_fnc)
             
-            # starting location is now the current customer position 
-            start_location = customer_location
-            start_dt = time_dt
-    
+    # Check for unserved orders
+    for order in arrival_t:
+        if arrival_t[order] == "unserved":
+            freshness_fnc = inst.orders[order]["Freshness Function"]
+            total_score += freshness_function(float('inf'), freshness_fnc) 
+
     print(f"Total freshness score: {total_score}")
+    #print_graph(inst.graph)
     return 
+
 
 
 def write_solution(solution, output_file):
@@ -436,37 +500,6 @@ def write_solution(solution, output_file):
         
     return 
 
-def arrival_times(input_file, solution_file):
-    """
-    Compute arrival times for each order served in a solution.
-
-    Parameters
-    ----------
-    input_file : str
-        Path to an input instance file.
-
-    solution_file : str
-        Path to a solution file in the required format.
-
-    Returns
-    -------
-    dict
-        A dictionary mapping each order ID to either:
-        - a string "HH:MM" representing the arrival time at the customer, or
-        - the string "unserved" if the order was not fulfilled.
-
-    Notes
-    -----
-    The function must simulate all bot routes exactly in the sequence
-    specified in the solution file. Time must be handled using the
-    assignment's time format and travel times between nodes.
-    """
-    
-    ### if the bot arrives at restuarant at time T0 
-        # departs from restaurant at T1 =  max{start time + 1, T0 +2}
-        # arrives at the customer T2 = T1 + travel time from restaurant to customer
-        # when is it ready for the next customer T3 = T2 + 5 
-    return 
     
 def instruction_file(input_file, solution_file, x, output_path):
     """
@@ -514,4 +547,6 @@ if __name__ == "__main__":
     inst = read_input("Examples/instance1")
     #write_instance(inst, "Examples/output_instance1.txt")
     evaluate("Examples/instance1", "Examples/instance1_sol")
+    #arrival_times("Examples/instance1", "Examples/instance1_sol")
+    
     
