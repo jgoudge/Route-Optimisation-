@@ -302,6 +302,17 @@ def freshness_function(arrival_difference, freshness_list):
 
     return score 
 
+def find_transit_time(start, end, graph):
+    transit_time = 0 
+    for edges in inst.graph:
+        if edges[0] == start and edges[1] == end:
+            transit_time = edges[2]
+            print(f"Found edge {edges} with transit time {transit_time}")
+            return transit_time
+    
+    else: 
+        print (f"No direct edge found from {start} to {end}, returning 0")
+    return transit_time 
 
 def evaluate(input_file, solution_file):
     """
@@ -335,9 +346,9 @@ def evaluate(input_file, solution_file):
         print(solution[bot])
         start_location = inst.bots[bot]
         for order in solution[bot]:
+            
             # Get order details from instance
             print(f"Getting order details {order} executed by {bot}")
-            #start_location = inst.bots[bot]
             restaurant_location = inst.orders[order]["Restaurant location"]
             customer_location = inst.orders[order]["Customer Location"]
             print(f"Starting at {start_location} the restaurant is at {restaurant_location} and customer at {customer_location}")
@@ -347,48 +358,32 @@ def evaluate(input_file, solution_file):
             ready_dt = datetime.combine(datetime.today(), ready_time)
 
             # Find transit time from start to restaurant
-            print("Finding transit time from start to restaurant")
-            for edges in inst.graph:
-                if edges[0] == start_location and edges[1] == restaurant_location:
-                    transit_time = edges[2]
-                    print(f"Found edge {edges} with transit time {transit_time}")
-                    break
-                #else:
-                    #print("there are no directly connected routes and need to connect via other nodes")
-            
-            # time after transit to restaurant
+            transit_time = find_transit_time(start_location, restaurant_location, inst.graph)
             time_dt = start_dt + timedelta(minutes=transit_time)
+            print(f"found transit time of {transit_time} minutes, arrival at restaurant at time {time_dt.time()}")
             
             # one minute to enter restaurant 
-            print("adding 1 minute to enter restaurant")
             time_dt += timedelta(minutes=1)
-            print(f"the time is now {time_dt.time()}")
+            print(f"add 1 minute to enter the time is now {time_dt.time()}")
             
-            
+            # check if the order time is ready or if have to wait 
             if time_dt < ready_dt:
                 print(f"waiting for order to be ready at {ready_dt.time()}")
                 time_dt = ready_dt
                 print(f"the time is now {time_dt.time()}")
-                # add one minute to exit the restaurant
-                time_dt += timedelta(minutes=1)
-                print("adding 1 minute to exit restaurant time is now ", time_dt.time())
                 
             else:
                 print("no waiting needed, order is ready")
-                #add 1 minute to exit restaurant and use current time
-                time_dt += timedelta(minutes=1)
+            
+            #add 1 minute to exit restaurant and use current time
+            time_dt += timedelta(minutes=1)
+            print("adding 1 minute to exit restaurant time is now ", time_dt.time())
             
             # Find transit time from restaurant to customer
             print("Finding transit time from restaurant to customer")
             print(f"looking for edge from {restaurant_location} to {customer_location}")
-            for edges in inst.graph:
-                if edges[0] == restaurant_location and edges[1] == customer_location:
-                    transit_time = edges[2]
-                    print(f"Found edge {edges} with transit time {transit_time}")
-                    break
-                #else:
-                    #print("there are no directly connected routes and need to connect via other nodes")
             
+            transit_time = find_transit_time(restaurant_location, customer_location, inst.graph)
             # time after transit to customer
             time_dt += timedelta(minutes=transit_time)
             arrival_time = time_dt
@@ -407,8 +402,8 @@ def evaluate(input_file, solution_file):
             
             # starting location is now the current customer position 
             start_location = customer_location
-            
-
+            start_dt = time_dt
+    
     print(f"Total freshness score: {total_score}")
     return 
 
