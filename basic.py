@@ -232,7 +232,38 @@ def write_instance(instance: problem_instance, output_file: str):
     None
         The function writes the instance to the file but returns nothing.
     """
-    return
+    with open(output_file, "w") as file:   
+        # Write graph section
+        file.write("[graph]\n")
+        for tail, head, transit_time in instance.graph:
+            file.write(f"{tail};{head};{transit_time}\n")
+        file.write("\n")
+        
+        # Write bots section
+        file.write("[bots]\n")
+        for bot_id, location in instance.bots.items():
+            file.write(f"{bot_id};{location}\n")
+        file.write("\n")
+        
+        # Write time horizon section
+        file.write("[time horizon]\n")
+        for label, time_obj in instance.time_horizon.items():
+            time_str = time_obj.strftime("%H:%M")
+            file.write(f"{label} {time_str}\n")
+        file.write("\n")
+
+        # Write orders section
+        file.write("[orders]\n")
+        for order, details in instance.orders.items():
+            ready_time_str = details["Ready time"].strftime("%H:%M")
+            freshness_parts = [
+                f"{start}:{score}" for start, end, score in details["Freshness Function"]
+            ]
+            freshness_str = ";".join(freshness_parts)
+            file.write(f"{order};{details['Restaurant location']};"
+                    f"{details['Customer Location']};{ready_time_str};"
+                    f"{freshness_str}\n")
+    return 
 
 def evaluate(input_file, solution_file):
     """
@@ -283,7 +314,6 @@ def evaluate(input_file, solution_file):
         #print(items,orders[items]["Freshness Function"])
     
     return 
-
 
 def write_solution(solution, output_file):
     """
@@ -388,4 +418,7 @@ def instruction_file(input_file, solution_file, x, output_path):
     return 
 
 if __name__ == "__main__":
-    evaluate("Examples/input.txt", "Examples/solution.txt")
+    inst = read_input("Examples/input.txt")
+    write_instance(inst, "Examples/output_instance.txt")
+    #evaluate("Examples/input.txt", "Examples/solution.txt")
+    
