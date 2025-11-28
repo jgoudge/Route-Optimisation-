@@ -1,0 +1,41 @@
+=== solution value ===
+210
+
+=== arrival times ===
+DB001: 18:21
+DB002: 18:06
+DB003: 18:24
+DB004: 18:46
+DB005: 18:51
+
+=== instructions ===
+[C3PO]
+collect food
+go to v0
+deliver food
+go to v1
+collect food
+go to v3
+deliver food
+go to v4
+go to v0
+go to v1
+collect food
+go to v2
+deliver food
+
+[R2D2]
+go to v2
+go to v3
+go to v4
+collect food
+go to v0
+go to v2
+deliver food
+go to v3
+go to v4
+collect food
+go to v0
+go to v2
+go to v3
+deliver food

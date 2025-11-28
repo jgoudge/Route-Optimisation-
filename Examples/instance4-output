@@ -1,0 +1,83 @@
+=== solution value ===
+210
+
+=== arrival times ===
+DB0000: 19:25
+DB0001: 18:16
+DB0002: 18:18
+DB0003: 19:27
+DB0004: 19:05
+DB0005: 18:25
+DB0006: 18:33
+DB0007: 19:00
+DB0008: 18:52
+DB0009: 19:14
+DB0010: unserved
+DB0011: 18:49
+
+=== instructions ===
+[PB-000]
+collect food
+go to v15
+go to v6
+go to v2
+deliver food
+go to v15
+go to v11
+collect food
+go to v4
+deliver food
+go to v15
+collect food
+go to v14
+go to v10
+deliver food
+
+[PB-001]
+go to v12
+go to v0
+collect food
+go to v12
+go to v8
+deliver food
+go to v0
+collect food
+go to v12
+go to v10
+deliver food
+go to v15
+go to v11
+collect food
+go to v15
+go to v14
+deliver food
+go to v15
+go to v11
+collect food
+go to v1
+deliver food
+
+[PB-002]
+go to v14
+go to v15
+collect food
+go to v14
+go to v3
+deliver food
+go to v6
+go to v11
+collect food
+go to v15
+go to v8
+deliver food
+go to v0
+collect food
+go to v12
+go to v8
+deliver food
+go to v0
+collect food
+go to v12
+go to v8
+go to v4
+deliver food

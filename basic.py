@@ -1,5 +1,102 @@
 from datetime import datetime
+from dataclasses import dataclass
 
+@dataclass 
+class problem_instance:
+    """
+    Data structure representing a complete problem instance.
+    
+    Attributes
+    -----------
+    bots : dict 
+        A dictionary mapping bot IDs to their starting locations.
+    graph : list
+        A list of edges in the graph, each represented as a tuple
+        (tail, head, transit_time).
+    time_horizon : dict
+        A dictionary with keys "start" and "end" mapping to datetime.time
+        objects representing the time horizon.
+    orders : list
+        A list of orders, each represented as an order dataclass instance.
+    """
+    bots: dict 
+    graph: list 
+    time_horizon: dict
+    orders: list
+
+@dataclass 
+class graph:
+    """
+    Data structure representing a 
+    
+    """
+    tail: str
+    head: str
+    transit_time: int
+    
+@dataclass 
+class bot:
+    """
+    Data structure representing a PizzaBot.
+    
+    Attributes
+    -----------
+    id : str
+        Unique identifier for the bot.
+    location : str
+        Starting location of the bot.
+    """
+    id: str
+    location: str
+    
+@dataclass 
+class time_horizon:
+    """
+    Data structure representing the time horizon for the problem instance.
+    
+    Attributes
+    -----------
+    start : datetime.time
+        Start time of the time horizon in datetime format HH:MM.
+    end : datetime.time
+        End time of the time horizon in datetime format HH:MM.
+    """
+    start: datetime.time
+    end: datetime.time
+
+@dataclass
+class order:
+    """
+    Data structure representing a customer order.
+    
+    Attributes
+    -----------
+    id : str
+        Unique identifier for the order.
+    restaurant_location : str
+        Location of the restaurant preparing the order.
+    customer_location : str
+        Location of the customer receiving the order.
+    ready_time : datetime.time
+        Time when the order is ready for pickup in datetime format HH:MM.
+    """
+    id: str
+    restaurant_location: str
+    customer_location: str
+    ready_time: datetime.time
+    freshness_function: list 
+
+
+# Custom exception for parsing errors
+class ParsingError(Exception):
+    """Custom exception for errors encountered during parsing of input files."""
+    def __init__(self, filename, line, note=""):
+        self.filename = filename
+        self.line = line
+        self.message = f"Error parsing file {filename} at line: {line}. {note}"
+        super().__init__(self.message)
+
+        
 def parse_freshness(freshness_values):
     """
     Takes the original freshness values from the input file and converts them
@@ -20,22 +117,25 @@ def parse_freshness(freshness_values):
     pairs = []
     freshness_function = []
     
+    # Convert input strings to (start, score) pairs
     for item in freshness_values:
         start, score = item.split(":")
         pairs.append((int(start), int(score)))
-        
+    
+    # Create piecewise constant function intervals
     for index in range(len(pairs) - 1):
         start_t = pairs[index][0]
         end_t = pairs[index + 1][0]
         score = pairs[index][1]
         freshness_function.append((start_t, end_t, score))
     
+    # Handle the last interval extending to infinity
     last_t, last_score = pairs[-1]
     freshness_function.append((last_t, float('inf'), last_score))
 
     return freshness_function
 
-def read_input(input_file):
+def read_input(input_file: str) -> problem_instance:
     """
     Read an instance file in the specified format and convert it into
     internal data structures for further processing.
@@ -60,17 +160,19 @@ def read_input(input_file):
         A dictionary mapping order IDs to their details, including
         restaurant location, customer location, ready time, and freshness function.
     """
-    bots = {}
-    graph = []
-    time_horizon = {}
-    orders = {}
+    bots = dict()
+    graph = list()
+    time_horizon = dict()
+    orders = dict()
     
     section = "None"
     
+    # Read the input file line by line
     with open(input_file, 'r') as file:
         for line in file:
             read_line = line.strip()
         
+            # Identify section headers
             if read_line == "[bots]":
                 section = "bots"
                 continue 
@@ -83,7 +185,8 @@ def read_input(input_file):
             elif read_line == "[orders]":
                 section = "orders"
                 continue
-                
+            
+            # Parse lines based on the current section
             if section == "bots" and read_line != "":
                 # id ; location
                 bot_id, location = read_line.split(";")
@@ -93,12 +196,14 @@ def read_input(input_file):
                 # label (start or end); time in HH:MM format
                 label, time_string = read_line.split(" ")
                 time_object = datetime.strptime(time_string, "%H:%M").time()
+                # error converting to datetime object raises ValueError 
                 time_horizon[label] = time_object
                 
             elif section == "orders" and read_line != "":
                 # id; restaurant_location; customer_location; ready_time; a0; p0; a1; p2 ... ak; pk 
                 # a0 ... ak specifies freshness score function. 
                 order_id, restaurant_location, customer_location, ready_time, *freshness_values = read_line.split(";")
+                ready_time = datetime.strptime(ready_time, "%H:%M").time() 
                 freshness_function = parse_freshness(freshness_values)
                 orders [order_id] = {"Restaurant location": restaurant_location, 
                                     "Customer Location": customer_location, 
@@ -111,6 +216,10 @@ def read_input(input_file):
                 # ---> might need to implement an adjacency list or matrix for heuristic solution
                 tail, head, transit_time = read_line.split(";")
                 graph.append((tail, head, int(transit_time)))
+    
+    
+    print(orders)
+    print(orders['DB001']["Ready time"].strftime("%H:%M"))
     
     return bots, graph, time_horizon, orders
 
@@ -153,8 +262,14 @@ def evaluate(input_file, solution_file):
     #for each bot, print assigned orders and their freshness functions
     for bot in solution:
         for order in solution[bot]:
-            print(order)
-            #print(orders[order]["Freshness Function"])
+            ## for each order find the freshness function 
+            ## find the time that you arrive at the customer. 
+            #print(order)
+            
+            break
+            
+    #for items in orders:
+        #print(items,orders[items]["Freshness Function"])
     
     return 
 

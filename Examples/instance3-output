@@ -1,0 +1,137 @@
+=== solution value ===
+160
+
+=== arrival times ===
+DB0000: 19:57
+DB0001: 19:42
+DB0002: 19:59
+DB0003: 19:18
+DB0004: 19:18
+DB0005: 18:53
+DB0006: 18:33
+DB0007: 18:52
+DB0008: 18:29
+DB0009: 18:55
+DB0010: 18:44
+DB0011: 19:17
+DB0012: 19:41
+DB0013: 18:25
+DB0014: 19:04
+DB0015: unserved
+DB0016: unserved
+DB0017: 19:32
+DB0018: 19:51
+DB0019: 18:24
+
+=== instructions ===
+[PB-000]
+go to v22
+go to v10
+go to v2
+collect food
+go to v31
+deliver food
+go to v11
+go to v36
+collect food
+go to v15
+go to v27
+deliver food
+go to v1
+collect food
+go to v7
+go to v29
+deliver food
+go to v21
+collect food
+go to v39
+go to v34
+go to v4
+deliver food
+go to v29
+go to v21
+collect food
+go to v28
+deliver food
+
+[PB-001]
+go to v3
+go to v36
+collect food
+go to v6
+go to v24
+go to v4
+deliver food
+go to v29
+go to v21
+collect food
+go to v17
+go to v0
+deliver food
+go to v6
+go to v38
+collect food
+go to v21
+go to v36
+go to v6
+deliver food
+go to v2
+collect food
+go to v9
+go to v3
+deliver food
+
+[PB-002]
+go to v2
+go to v38
+collect food
+go to v21
+go to v14
+go to v37
+deliver food
+go to v38
+collect food
+go to v34
+go to v25
+go to v3
+deliver food
+go to v2
+collect food
+go to v31
+go to v18
+deliver food
+go to v22
+go to v10
+go to v2
+collect food
+go to v9
+go to v29
+deliver food
+
+[PB-003]
+go to v1
+collect food
+go to v22
+go to v32
+deliver food
+go to v2
+collect food
+go to v17
+go to v0
+deliver food
+go to v2
+collect food
+go to v7
+go to v12
+deliver food
+go to v26
+go to v1
+collect food
+go to v11
+go to v13
+deliver food
+go to v2
+collect food
+go to v9
+go to v15
+deliver food

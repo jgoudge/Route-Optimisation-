@@ -1,0 +1,36 @@
+=== solution value ===
+-30
+
+=== arrival times ===
+DB0000: 18:20
+DB0001: 19:13
+DB0002: unserved
+DB0003: 19:16
+DB0004: 18:47
+
+=== instructions ===
+[PB-000]
+go to v4
+go to v5
+collect food
+go to v1
+go to v4
+go to v6
+deliver food
+go to v7
+collect food
+go to v5
+go to v1
+deliver food
+
+[PB-001]
+go to v5
+collect food
+go to v1
+deliver food
+go to v4
+go to v5
+collect food
+go to v1
+go to v0
+deliver food

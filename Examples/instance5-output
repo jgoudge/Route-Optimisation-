@@ -1,0 +1,343 @@
+=== solution value ===
+690
+
+=== arrival times ===
+DB0000: 19:18
+DB0001: 17:58
+DB0002: 17:59
+DB0003: 17:23
+DB0004: 19:37
+DB0005: unserved
+DB0006: unserved
+DB0007: unserved
+DB0008: 17:22
+DB0009: 20:00
+DB0010: 18:23
+DB0011: 18:17
+DB0012: unserved
+DB0013: 19:35
+DB0014: 17:42
+DB0015: 19:16
+DB0016: unserved
+DB0017: 19:25
+DB0018: 17:16
+DB0019: 18:54
+DB0020: 19:42
+DB0021: 18:06
+DB0022: 18:39
+DB0023: 18:56
+DB0024: 19:32
+DB0025: 19:12
+DB0026: 18:41
+DB0027: 17:34
+DB0028: 19:36
+DB0029: 20:00
+DB0030: 19:59
+DB0031: 17:26
+DB0032: 18:16
+DB0033: unserved
+DB0034: 18:23
+DB0035: 19:02
+DB0036: 17:31
+DB0037: 18:25
+DB0038: 18:58
+DB0039: 19:02
+DB0040: 20:00
+DB0041: 17:47
+DB0042: unserved
+DB0043: unserved
+DB0044: unserved
+DB0045: 17:40
+DB0046: 20:00
+DB0047: 18:37
+DB0048: 17:48
+DB0049: 18:55
+DB0050: 18:04
+DB0051: 18:43
+DB0052: 18:06
+DB0053: 18:21
+DB0054: 19:19
+DB0055: 17:17
+DB0056: 18:39
+DB0057: 18:31
+DB0058: 19:39
+DB0059: 20:00
+
+=== instructions ===
+[PB-000]
+go to v4
+go to v37
+collect food
+go to v25
+go to v22
+deliver food
+go to v41
+go to v30
+collect food
+go to v41
+go to v14
+go to v26
+deliver food
+go to v30
+collect food
+go to v41
+go to v14
+deliver food
+go to v33
+collect food
+go to v30
+go to v1
+deliver food
+go to v20
+collect food
+go to v2
+deliver food
+go to v20
+collect food
+go to v39
+go to v19
+deliver food
+go to v30
+collect food
+go to v8
+go to v16
+deliver food
+go to v27
+go to v30
+collect food
+go to v35
+deliver food
+
+[PB-001]
+collect food
+go to v19
+go to v17
+deliver food
+go to v37
+collect food
+go to v21
+deliver food
+go to v20
+collect food
+go to v38
+deliver food
+go to v39
+collect food
+go to v19
+go to v38
+deliver food
+go to v39
+collect food
+go to v12
+deliver food
+go to v27
+collect food
+go to v30
+go to v8
+deliver food
+go to v3
+go to v33
+collect food
+go to v2
+deliver food
+go to v20
+collect food
+go to v39
+go to v12
+deliver food
+go to v27
+go to v30
+collect food
+go to v8
+go to v16
+deliver food
+
+[PB-002]
+go to v27
+go to v30
+collect food
+go to v0
+go to v12
+deliver food
+go to v27
+collect food
+go to v1
+go to v18
+deliver food
+go to v31
+go to v37
+collect food
+go to v24
+go to v16
+deliver food
+go to v27
+go to v30
+collect food
+go to v8
+deliver food
+go to v37
+collect food
+go to v2
+go to v29
+deliver food
+go to v28
+collect food
+go to v14
+go to v6
+deliver food
+go to v41
+go to v28
+collect food
+go to v29
+deliver food
+go to v14
+go to v20
+collect food
+go to v2
+deliver food
+go to v30
+collect food
+go to v1
+go to v11
+deliver food
+
+[PB-003]
+go to v30
+collect food
+go to v35
+deliver food
+go to v28
+collect food
+go to v14
+deliver food
+go to v26
+go to v39
+collect food
+go to v27
+go to v31
+deliver food
+go to v28
+collect food
+go to v0
+go to v12
+deliver food
+go to v27
+collect food
+go to v24
+go to v10
+go to v19
+deliver food
+go to v30
+collect food
+go to v1
+go to v11
+deliver food
+go to v15
+go to v3
+go to v33
+collect food
+go to v11
+go to v40
+go to v6
+deliver food
+go to v20
+collect food
+go to v2
+go to v10
+deliver food
+
+[PB-004]
+go to v11
+go to v15
+go to v37
+go to v27
+collect food
+go to v24
+go to v10
+deliver food
+go to v31
+go to v37
+collect food
+go to v40
+deliver food
+go to v11
+go to v15
+go to v3
+go to v33
+collect food
+go to v41
+go to v14
+go to v23
+deliver food
+go to v28
+collect food
+go to v13
+deliver food
+go to v9
+collect food
+go to v30
+go to v41
+deliver food
+go to v28
+collect food
+go to v14
+go to v6
+deliver food
+go to v41
+go to v30
+collect food
+go to v1
+go to v19
+go to v38
+deliver food
+go to v7
+go to v9
+collect food
+go to v24
+go to v10
+deliver food
+
+[PB-005]
+go to v10
+go to v9
+collect food
+go to v25
+deliver food
+go to v27
+collect food
+go to v32
+deliver food
+go to v28
+collect food
+go to v13
+go to v15
+deliver food
+go to v3
+go to v33
+collect food
+go to v2
+deliver food
+go to v20
+collect food
+go to v38
+deliver food
+go to v7
+go to v9
+collect food
+go to v13
+deliver food
+go to v9
+collect food
+go to v12
+go to v16
+deliver food
+go to v27
+collect food
+go to v24
+go to v10
+deliver food
+go to v9
+collect food
+go to v30
+go to v41
+deliver food

@@ -1,0 +1,280 @@
+=== solution value ===
+640
+
+=== arrival times ===
+DB0000: unserved
+DB0001: 18:14
+DB0002: 19:33
+DB0003: 19:58
+DB0004: 18:54
+DB0005: 17:37
+DB0006: 16:28
+DB0007: 17:12
+DB0008: 17:04
+DB0009: unserved
+DB0010: 18:44
+DB0011: 16:35
+DB0012: 19:24
+DB0013: unserved
+DB0014: 17:34
+DB0015: 16:49
+DB0016: 19:11
+DB0017: 17:50
+DB0018: 18:45
+DB0019: 19:49
+DB0020: 18:04
+DB0021: unserved
+DB0022: 18:25
+DB0023: 16:28
+DB0024: 16:59
+DB0025: unserved
+DB0026: 18:32
+DB0027: 16:19
+DB0028: 16:30
+DB0029: 17:22
+DB0030: 17:34
+DB0031: 16:59
+DB0032: 19:30
+DB0033: unserved
+DB0034: 19:43
+DB0035: 17:57
+DB0036: 19:08
+DB0037: 18:06
+DB0038: 19:05
+DB0039: 19:57
+
+=== instructions ===
+[Bumblebee]
+go to v12
+go to v8
+collect food
+go to v3
+go to v24
+deliver food
+go to v9
+collect food
+go to v2
+deliver food
+go to v29
+go to v31
+go to v23
+collect food
+go to v46
+deliver food
+go to v4
+go to v23
+collect food
+go to v26
+go to v15
+deliver food
+go to v35
+go to v24
+go to v9
+collect food
+go to v12
+go to v8
+go to v18
+deliver food
+go to v48
+collect food
+go to v7
+go to v13
+go to v35
+go to v34
+deliver food
+go to v39
+go to v18
+go to v48
+collect food
+go to v40
+go to v39
+go to v18
+deliver food
+go to v3
+go to v8
+collect food
+go to v3
+go to v39
+go to v29
+deliver food
+go to v31
+go to v23
+collect food
+go to v32
+deliver food
+
+[Megatron]
+go to v12
+go to v25
+collect food
+go to v4
+go to v43
+deliver food
+go to v12
+go to v25
+collect food
+go to v4
+go to v23
+go to v26
+go to v31
+deliver food
+go to v23
+collect food
+go to v26
+go to v31
+go to v0
+deliver food
+go to v8
+collect food
+go to v3
+go to v12
+go to v0
+deliver food
+go to v31
+go to v23
+collect food
+go to v27
+go to v30
+go to v17
+deliver food
+go to v4
+go to v30
+go to v9
+collect food
+go to v4
+go to v23
+go to v46
+go to v21
+deliver food
+go to v27
+go to v30
+go to v17
+go to v4
+go to v23
+collect food
+go to v27
+go to v30
+deliver food
+go to v17
+go to v4
+go to v23
+collect food
+go to v27
+go to v30
+deliver food
+
+[Optimus Prime]
+go to v12
+go to v25
+collect food
+go to v4
+go to v30
+go to v19
+go to v47
+deliver food
+go to v45
+collect food
+go to v29
+go to v18
+go to v47
+deliver food
+go to v30
+go to v9
+collect food
+go to v12
+go to v27
+go to v5
+deliver food
+go to v9
+collect food
+go to v12
+go to v27
+go to v30
+deliver food
+go to v17
+go to v4
+go to v23
+collect food
+go to v46
+go to v4
+go to v6
+deliver food
+go to v48
+go to v9
+collect food
+go to v12
+deliver food
+go to v25
+collect food
+go to v4
+go to v30
+go to v19
+deliver food
+go to v25
+collect food
+go to v6
+go to v22
+go to v39
+go to v29
+deliver food
+
+[Starscream]
+go to v39
+go to v18
+go to v48
+collect food
+go to v17
+go to v4
+go to v23
+go to v26
+deliver food
+go to v31
+go to v23
+collect food
+go to v3
+go to v39
+deliver food
+go to v18
+go to v48
+go to v9
+collect food
+go to v2
+deliver food
+go to v12
+go to v8
+collect food
+go to v18
+deliver food
+go to v48
+collect food
+go to v40
+go to v47
+go to v36
+deliver food
+go to v29
+go to v18
+go to v48
+go to v9
+collect food
+go to v12
+go to v3
+go to v47
+go to v36
+deliver food
+go to v8
+collect food
+go to v10
+go to v7
+deliver food
+go to v12
+go to v8
+collect food
+go to v18
+deliver food
+go to v3
+go to v8
+collect food
+go to v3
+go to v47
+go to v19
+deliver food

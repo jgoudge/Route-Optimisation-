@@ -1,0 +1,20 @@
+=== solution value ===
+80
+
+=== arrival times ===
+DB001: 19:09
+DB002: 18:36
+
+=== instructions ===
+[R2D2]
+go to v1
+collect food
+go to v3
+deliver food
+go to v4
+go to v0
+collect food
+go to v2
+go to v3
+go to v4
+deliver food
